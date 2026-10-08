@@ -158,7 +158,7 @@ function sheetStart(label, p) {
   const page = paperDimensions(p);
   return '<svg xmlns="http://www.w3.org/2000/svg" width="' + page.w + 'mm" height="' + page.h +
     'mm" viewBox="0 0 ' + page.w + ' ' + page.h + '">' +
-    '<title>' + escapeXml(label) + '</title><desc>True-size A4 vector artwork. Print at 100 percent scale, without fit to page.</desc>';
+    '<title>' + escapeXml(label) + '</title><desc>True-size vector artwork for the selected paper size. Print at 100 percent scale, without fit to page.</desc>';
 }
 function sheetFooter(text, p) {
   const h = paperDimensions(p).h;
@@ -192,7 +192,7 @@ export function printSheet(p, kind) {
       ') scale(' + fmt(scale) + ')">' + acetate(p) + '</g>';
   }
   // Registration marks match both exports and remain outside the visible art.
-  for (const cx of [x - 5, x + size + 5]) for (const cy of [y - 5, y + size + 5]) svg += cross(cx, cy);
+  for (const cx of [x - 12, x + size + 12]) for (const cy of [y - 12, y + size + 12]) svg += cross(cx, cy);
   svg += '<rect x="' + fmt(x) + '" y="' + y + '" width="' + size +
     '" height="' + size + '" stroke="#9aa99e" stroke-width=".15" fill="none" stroke-dasharray="1 1"/>';
   return svg + sheetFooter(base ?
