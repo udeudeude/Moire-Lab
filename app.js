@@ -2,12 +2,12 @@ import { PRESETS, FIELD, clamp, experimentMarkup, printSheet, calibrationSheet }
 
 const $ = id => document.getElementById(id);
 const defaults = {
-  moire: { mode:'moire', preset:'tide', pitch:1, amplitude:50, angle:0, speed:1, size:120, paper:'letter', phase:0 },
-  barrier: { mode:'barrier', preset:'wheel', pitch:5.6, amplitude:65, angle:0, speed:1, size:120, paper:'letter', phase:0 }
+  moire: { mode:'moire', preset:'circles', pitch:1, amplitude:60, angle:0, speed:1, size:120, paper:'letter', phase:0, shiftX:0, shiftY:0 },
+  barrier: { mode:'barrier', preset:'wheel', pitch:5.6, amplitude:65, angle:0, speed:1, size:120, paper:'letter', phase:0, shiftX:0, shiftY:0 }
 };
 const state = { mode:'moire', moire:{...defaults.moire}, barrier:{...defaults.barrier}, overlay:true, playing:false };
-const allowed = { moire:['tide','vortex','radiance','folds'], barrier:['wheel','fish'] };
-const ranges = { pitch: [0.6,8], amplitude:[0,100], angle:[-12,12], speed:[.2,3], size:[90,150] };
+const allowed = { moire:['circles','squares','engine','sailboat','tide','vortex','radiance','folds'], barrier:['wheel','fish'] };
+const ranges = { pitch: [0.6,8], amplitude:[0,100], angle:[-180,180], speed:[.2,3], size:[90,150] };
 
 try {
   const saved = JSON.parse(localStorage.getItem('moire-lab-v1') || 'null');
@@ -22,12 +22,16 @@ try {
       if (allowed[mode].includes(s.preset)) state[mode].preset = s.preset;
       if (s.paper === 'letter' || s.paper === 'a4') state[mode].paper = s.paper;
       state[mode].phase = 0;
+      state[mode].shiftX = typeof s.shiftX === 'number' && Number.isFinite(s.shiftX) ? clamp(s.shiftX,-240,240) : 0;
+      state[mode].shiftY = typeof s.shiftY === 'number' && Number.isFinite(s.shiftY) ? clamp(s.shiftY,-240,240) : 0;
     }
     state.overlay = saved.overlay !== false;
   }
 } catch { /* Private browsing or unavailable storage should never prevent the lab opening. */ }
 
-let frameHandle = 0, lastFrame = 0, paintPending = false, pointer = null;
+let frameHandle = 0, lastFrame = 0, paintPending = false;
+const activePointers = new Map();
+let gesture = null;
 const current = () => state[state.mode];
 const modeMoire = $('modeMoire'), modeBarrier = $('modeBarrier');
 const stage = $('stage'), experiment = $('experiment');
@@ -47,6 +51,10 @@ function persist() {
 function populatePresets() {
   const s = $('presetSelect');
   const labels = {
+    circles:'Magic circles · four studies',
+    squares:'Magic squares · four studies',
+    engine:'Smoking engine · moving smoke',
+    sailboat:'Sailboat at sea · water and clouds',
     tide:'Tidal lines · rolling water',
     vortex:'Vortex · warped rings',
     radiance:'Radiance · radial field',
@@ -64,6 +72,7 @@ function populateChoices() {
   const choices = $('experimentChoices');
   choices.replaceChildren();
   const names = {
+    circles:'Magic circles', squares:'Magic squares', engine:'Smoking engine', sailboat:'Sailboat',
     tide:'Tidal lines', vortex:'Vortex', radiance:'Radiance', folds:'Woven folds',
     wheel:'Turning wheel', fish:'Swimming fish'
   };
@@ -99,8 +108,8 @@ function syncControls() {
   controls.pitch.min = moire ? '0.6' : '2';
   controls.pitch.max = moire ? '2.4' : '8';
   controls.pitch.step = moire ? '0.05' : '0.2';
-  controls.angle.disabled = !moire;
-  controls.angle.title = moire ? 'Rotate the striped overlay' : 'Barrier animation uses an unrotated mask';
+  controls.angle.disabled = false;
+  controls.angle.title = 'Rotate the real acetate pattern, including with a two-finger gesture';
   for (const key of Object.keys(controls)) controls[key].value = String(p[key]);
   $('paperSelect').value = p.paper;
   const phase = phaseRange;
@@ -125,10 +134,14 @@ function syncControls() {
 }
 function applyPhase() {
   const p = current();
-  const v = p.phase * FIELD / p.size;
+  const factor = FIELD / p.size;
+  const v = p.phase * factor;
+  const x = (p.shiftX||0)*factor + (state.mode === 'barrier' ? v : 0);
+  const y = (p.shiftY||0)*factor + (state.mode === 'moire' ? v : 0);
   const g = $('acetate-shift');
-  if (g) g.setAttribute('transform', state.mode === 'moire' ?
-    'translate(0 ' + v.toFixed(5) + ')' : 'translate(' + v.toFixed(5) + ' 0)');
+  if (g) g.setAttribute('transform', 'translate(' + x.toFixed(5) + ' ' + y.toFixed(5) + ')');
+  const rotation = $('acetate-rotation');
+  if (rotation) rotation.setAttribute('transform', 'rotate(' + p.angle.toFixed(4) + ' 60 60)');
   phaseRange.value = String(clamp(p.phase, Number(phaseRange.min), Number(phaseRange.max)));
   $('phaseReadout').textContent = p.phase.toFixed(2) + ' mm';
 }
@@ -204,7 +217,8 @@ for (const key of ['pitch','amplitude','angle','speed']) {
       phaseRange.value = '0';
     }
     updateReadouts();
-    if (key !== 'speed') queueRender();
+    if (key === 'angle') applyPhase();
+    else if (key !== 'speed') queueRender();
     persist();
   });
 }
@@ -227,43 +241,94 @@ $('overlayButton').addEventListener('click', () => {
   syncControls(); persist();
 });
 $('resetButton').addEventListener('click', () => {
-  stopPlaying(); current().phase = 0; applyPhase();
+  stopPlaying();
+  Object.assign(current(), {phase:0,shiftX:0,shiftY:0,angle:0});
+  syncControls(); applyPhase(); persist();
 });
 $('defaultsButton').addEventListener('click', () => {
   stopPlaying(); state[state.mode] = {...defaults[state.mode]};
   syncControls(); render(); persist();
 });
-stage.addEventListener('pointerdown', e => {
-  if (e.button !== 0 && e.pointerType === 'mouse') return;
+// Pointer Events work with both finger touches and Mac trackpad/mouse input.
+// Rebase on each addition/removal so a second finger never makes the grid jump.
+const normalizeAngle = a => ((a+180)%360+360)%360-180;
+function sampleGesture() {
+  const points = [...activePointers.values()];
+  if (!points.length) return null;
+  const center = {
+    x: points.reduce((s,v)=>s+v.x,0)/points.length,
+    y: points.reduce((s,v)=>s+v.y,0)/points.length
+  };
+  const orientation = points.length >= 2 ?
+    Math.atan2(points[1].y-points[0].y,points[1].x-points[0].x) : null;
+  return {center,orientation};
+}
+function rebaseGesture() {
+  const info = sampleGesture(), p=current();
+  if (!info) { gesture=null; return; }
+  gesture={...info,phase:p.phase,shiftX:p.shiftX||0,shiftY:p.shiftY||0,angle:p.angle};
+}
+function wrapPhase(phase,period,moire) {
+  if (moire) return ((phase+period)%(2*period)+2*period)%(2*period)-period;
+  return ((phase%period)+period)%period;
+}
+function movePointers() {
+  const info=sampleGesture();
+  if (!info || !gesture) return;
+  const bounds=stage.getBoundingClientRect();
+  if (!bounds.width) return;
+  const p=current();
+  const dx=(info.center.x-gesture.center.x)/bounds.width*p.size;
+  const dy=(info.center.y-gesture.center.y)/bounds.width*p.size;
+  if (state.mode==='moire') {
+    p.phase=wrapPhase(gesture.phase+dy,p.pitch,true);
+    p.shiftX=gesture.shiftX+dx;
+    p.shiftY=gesture.shiftY;
+  } else {
+    p.phase=wrapPhase(gesture.phase+dx,p.pitch,false);
+    p.shiftY=gesture.shiftY+dy;
+    p.shiftX=gesture.shiftX;
+  }
+  if (info.orientation !== null && gesture.orientation !== null) {
+    const delta=Math.atan2(Math.sin(info.orientation-gesture.orientation),
+                           Math.cos(info.orientation-gesture.orientation));
+    p.angle=normalizeAngle(gesture.angle+delta*180/Math.PI);
+  }
+  applyPhase();
+  controls.angle.value=p.angle;
+  $('angleOut').textContent=p.angle.toFixed(1).replace('.0','')+'°';
+  // Incremental rebasing permits a continuous turn across the ±180° seam.
+  rebaseGesture();
+}
+stage.addEventListener('pointerdown',e=>{
+  if (e.pointerType==='mouse' && e.button!==0) return;
   stopPlaying();
-  pointer = { id:e.pointerId, x:e.clientX, y:e.clientY, phase:current().phase };
+  activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
   stage.setPointerCapture(e.pointerId);
+  rebaseGesture();
   e.preventDefault();
 });
-stage.addEventListener('pointermove', e => {
-  if (!pointer || e.pointerId !== pointer.id) return;
-  const r = stage.getBoundingClientRect();
-  if (!r.width) return;
-  const delta = (state.mode === 'moire' ? e.clientY - pointer.y : e.clientX - pointer.x) / r.width * current().size;
-  const p = current();
-  const period = p.pitch;
-  // Unbounded finger movement is wrapped into one repeat cycle; the physical grid is periodic.
-  let next = pointer.phase + delta;
-  p.phase = state.mode === 'moire' ?
-    ((next + period) % (period * 2) + period * 2) % (period * 2) - period :
-    ((next % period) + period) % period;
-  applyPhase();
+stage.addEventListener('pointermove',e=>{
+  if (!activePointers.has(e.pointerId)) return;
+  activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  movePointers();
   e.preventDefault();
 });
 function endPointer(e) {
-  if (pointer && e.pointerId === pointer.id) {
-    pointer = null;
-    if (stage.hasPointerCapture(e.pointerId)) stage.releasePointerCapture(e.pointerId);
-  }
+  if (!activePointers.has(e.pointerId)) return;
+  activePointers.delete(e.pointerId);
+  if (stage.hasPointerCapture(e.pointerId)) stage.releasePointerCapture(e.pointerId);
+  rebaseGesture();
+  persist();
 }
-stage.addEventListener('pointerup', endPointer);
-stage.addEventListener('pointercancel', endPointer);
-stage.addEventListener('lostpointercapture', () => { pointer = null; });
+stage.addEventListener('pointerup',endPointer);
+stage.addEventListener('pointercancel',endPointer);
+stage.addEventListener('lostpointercapture',e=>{
+  if (!activePointers.has(e.pointerId)) return;
+  activePointers.delete(e.pointerId);
+  rebaseGesture();
+  persist();
+});
 stage.addEventListener('keydown', e => {
   const isHorizontal = state.mode === 'barrier';
   const forward = isHorizontal ? 'ArrowRight' : 'ArrowDown';
