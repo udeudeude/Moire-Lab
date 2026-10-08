@@ -18,7 +18,8 @@ button,select,input{font:inherit}button{cursor:pointer}button:focus-visible,sele
 .experiment-choice[aria-pressed="true"]{background:var(--ink);color:white;border-color:var(--ink);box-shadow:inset 0 -2px 0 var(--accent)}
 .experiment-choice:hover:not([aria-pressed="true"]){background:#e8e1d3}
 .experiment-choice:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.stage-surround{border-radius:5px;background:radial-gradient(ellipse at 50% 44%,#3a5e58 0%,#122b28 65%,#102523 100%);display:grid;place-items:center;padding:31px 20px;min-height:410px;overflow:hidden}
+.stage-surround{border-radius:5px;background:radial-gradient(ellipse at 50% 44%,#3a5e58 0%,#122b28 65%,#102523 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;padding:27px 20px 16px;min-height:410px;overflow:hidden}
+.stage-prompt{margin:0;color:#e9d7ba;text-align:center;font-size:10px;font-weight:850;letter-spacing:.12em;line-height:1.5}
 .stage{position:relative;width:min(100%,390px);aspect-ratio:1;background:#fefaf1;box-shadow:0 20px 26px #061b1a75,0 0 0 7px #edebdf25;touch-action:none;cursor:ns-resize;user-select:none;-webkit-user-select:none;overflow:hidden}
 .stage svg{display:block;width:100%;height:100%;shape-rendering:geometricPrecision}
 .stage-corner{position:absolute;width:15px;height:15px;pointer-events:none}.corner-tl{left:6px;top:6px;border-left:2px solid #d86b50;border-top:2px solid #d86b50}.corner-tr{right:6px;top:6px;border-right:2px solid #d86b50;border-top:2px solid #d86b50}.corner-bl{left:6px;bottom:6px;border-left:2px solid #d86b50;border-bottom:2px solid #d86b50}.corner-br{right:6px;bottom:6px;border-right:2px solid #d86b50;border-bottom:2px solid #d86b50}
