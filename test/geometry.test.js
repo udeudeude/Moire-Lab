@@ -5,7 +5,7 @@ import {
   barrierInk, barrierAcetate, frameArtwork, printSheet, calibrationSheet
 } from '../geometry.js';
 
-const moire = { mode:'moire', preset:'tide', pitch:1, amplitude:50, angle:0, speed:1, size:120, phase:0 };
+const moire = { mode:'moire', preset:'tide', pitch:1, amplitude:50, angle:0, speed:1, size:120, paper:'letter', phase:0 };
 const barrier = { ...moire, mode:'barrier', preset:'wheel', pitch:5.6 };
 
 test('all four moire experiments are genuine vector line fields', () => {
@@ -62,7 +62,7 @@ test('paper and transparent acetate are different, registration-matched A4 SVG f
     const b = printSheet(p,'base');
     for (const s of [a,b]) {
       assert.match(s, /xmlns="http:\/\/www.w3.org\/2000\/svg"/);
-      assert.match(s, /width="210mm" height="297mm"/);
+      assert.match(s, /width="215.9mm" height="279.4mm"/);
       assert.match(s, /50 mm reference ruler/);
       assert.match(s, /100 percent scale/);
       assert.ok(s.endsWith('</svg>'));
@@ -90,4 +90,10 @@ test('extreme allowed values remain finite and exportable', () => {
     assert.ok(s.length > 5000);
     assert.doesNotMatch(s, /NaN|Infinity/);
   }
+});
+
+test('A4 exports retain their own page dimensions, without scaling the drawing', () => {
+  const s = printSheet({...moire, paper:'a4'}, 'base');
+  assert.match(s, /width="210mm" height="297mm"/);
+  assert.match(s, /120 mm square/);
 });
