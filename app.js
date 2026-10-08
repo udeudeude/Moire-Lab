@@ -60,6 +60,25 @@ function populatePresets() {
     opt.value = key; opt.textContent = labels[key]; s.append(opt);
   }
 }
+function populateChoices() {
+  const choices = $('experimentChoices');
+  choices.replaceChildren();
+  const names = {
+    tide:'Tidal lines', vortex:'Vortex', radiance:'Radiance', folds:'Woven folds',
+    wheel:'Turning wheel', fish:'Swimming fish'
+  };
+  const presets = allowed[state.mode], p = current();
+  for (const preset of presets) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'experiment-choice';
+    b.dataset.preset = preset;
+    b.setAttribute('aria-pressed', String(p.preset === preset));
+    b.textContent = names[preset];
+    choices.append(b);
+  }
+  $('experimentCount').textContent = (presets.indexOf(p.preset) + 1) + ' OF ' + presets.length;
+}
 function updateReadouts() {
   const p = current();
   $('pitchOut').textContent = p.pitch.toFixed(2) + ' mm';
@@ -75,6 +94,7 @@ function syncControls() {
   modeMoire.setAttribute('aria-pressed', String(moire));
   modeBarrier.setAttribute('aria-pressed', String(!moire));
   populatePresets();
+  populateChoices();
   $('presetSelect').value = p.preset;
   controls.pitch.min = moire ? '0.6' : '2';
   controls.pitch.max = moire ? '2.4' : '8';
@@ -95,6 +115,9 @@ function syncControls() {
   $('stageFootnote').textContent = PRESETS[p.preset].description;
   $('overlayButton').textContent = state.overlay ? 'Overlay on' : 'Overlay off';
   $('overlayButton').setAttribute('aria-pressed', String(state.overlay));
+  $('dragInstruction').textContent = moire ? 'DRAG UP OR DOWN' : 'DRAG LEFT OR RIGHT';
+  $('dragIcon').textContent = moire ? '↕' : '↔';
+  phaseRange.setAttribute('aria-label', moire ? 'Slide acetate vertically' : 'Slide acetate horizontally');
   stage.style.cursor = moire ? 'ns-resize' : 'ew-resize';
   stage.setAttribute('aria-label', 'Interactive ' + (moire ? 'moiré' : 'barrier') + ' experiment. ' +
     (moire ? 'Drag up or down' : 'Drag left or right') + ' to move the acetate.');
@@ -158,11 +181,17 @@ function setMode(mode) {
 }
 modeMoire.addEventListener('click', () => setMode('moire'));
 modeBarrier.addEventListener('click', () => setMode('barrier'));
-$('presetSelect').addEventListener('change', e => {
-  const p = current();
-  if (!allowed[state.mode].includes(e.target.value)) return;
-  p.preset = e.target.value; p.phase = 0;
-  syncControls(); queueRender(); persist();
+function choosePreset(preset) {
+  if (!allowed[state.mode].includes(preset)) return;
+  stopPlaying();
+  current().preset = preset;
+  current().phase = 0;
+  syncControls(); render(); persist();
+}
+$('presetSelect').addEventListener('change', e => choosePreset(e.target.value));
+$('experimentChoices').addEventListener('click', e => {
+  const button = e.target.closest('button[data-preset]');
+  if (button) choosePreset(button.dataset.preset);
 });
 for (const key of ['pitch','amplitude','angle','speed']) {
   controls[key].addEventListener('input', e => {
