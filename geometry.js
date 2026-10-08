@@ -151,22 +151,29 @@ function cross(x, y) {
 function escapeXml(s) {
   return String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 }
-function sheetStart(label) {
-  return '<svg xmlns="http://www.w3.org/2000/svg" width="210mm" height="297mm" viewBox="0 0 210 297">' +
+export function paperDimensions(p = {}) {
+  return p.paper === 'a4' ? {w:210, h:297, name:'A4'} : {w:215.9, h:279.4, name:'US Letter'};
+}
+function sheetStart(label, p) {
+  const page = paperDimensions(p);
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="' + page.w + 'mm" height="' + page.h +
+    'mm" viewBox="0 0 ' + page.w + ' ' + page.h + '">' +
     '<title>' + escapeXml(label) + '</title><desc>True-size A4 vector artwork. Print at 100 percent scale, without fit to page.</desc>';
 }
-function sheetFooter(text) {
-  return '<text x="15" y="269" font-family="Arial,sans-serif" font-size="3.2" fill="#364842">' +
+function sheetFooter(text, p) {
+  const h = paperDimensions(p).h;
+  return '<text x="15" y="' + fmt(h-28) + '" font-family="Arial,sans-serif" font-size="3.2" fill="#364842">' +
     escapeXml(text) + '</text>' +
-    '<path d="M 15 278 H 65" stroke="#172c29" stroke-width=".4"/>' +
-    '<path d="M 15 276 V 280 M 65 276 V 280" stroke="#172c29" stroke-width=".4"/>' +
-    '<text x="40" y="284" font-family="Arial,sans-serif" font-size="3" text-anchor="middle">50 mm reference ruler</text></svg>';
+    '<path d="M 15 ' + fmt(h-19) + ' H 65" stroke="#172c29" stroke-width=".4"/>' +
+    '<path d="M 15 ' + fmt(h-21) + ' V ' + fmt(h-17) + ' M 65 ' + fmt(h-21) + ' V ' + fmt(h-17) +
+    '" stroke="#172c29" stroke-width=".4"/>' +
+    '<text x="40" y="' + fmt(h-13) + '" font-family="Arial,sans-serif" font-size="3" text-anchor="middle">50 mm reference ruler</text></svg>';
 }
 export function printSheet(p, kind) {
-  const size = clamp(p.size, 90, 150), x = (210 - size) / 2, y = 60, scale = size / FIELD;
+  const size = clamp(p.size, 90, 150), x = (paperDimensions(p).w - size) / 2, y = 60, scale = size / FIELD;
   const base = kind === 'base';
   const label = 'MOIRÉ LAB / ' + (base ? 'PICTURE' : 'TRANSPARENT ACETATE') + ' / ' + p.preset;
-  let svg = sheetStart(label);
+  let svg = sheetStart(label,p);
   svg += '<text x="15" y="20" font-family="Georgia,serif" font-size="8" font-weight="bold" fill="#172c29">MOIRÉ LAB</text>' +
     '<text x="15" y="29" font-family="Arial,sans-serif" font-size="3.6" fill="#52665d">' +
     escapeXml(base ? '01 / ORIGINAL PICTURE · PRINT ON PAPER' : '02 / MOVING GRID · PRINT ON CLEAR ACETATE') + '</text>' +
@@ -190,10 +197,10 @@ export function printSheet(p, kind) {
     '" height="' + size + '" stroke="#9aa99e" stroke-width=".15" fill="none" stroke-dasharray="1 1"/>';
   return svg + sheetFooter(base ?
     'Match the crosses with the acetate. Artwork is stationary.' :
-    'Use transparency film. Trim if desired; keep the moving grid larger than the picture.');
+    'Use transparency film. Trim if desired; keep the moving grid larger than the picture.', p);
 }
-export function calibrationSheet() {
-  let svg = sheetStart('MOIRÉ LAB / PRINT CALIBRATION');
+export function calibrationSheet(p = {}) {
+  let svg = sheetStart('MOIRÉ LAB / PRINT CALIBRATION',p);
   svg += '<text x="15" y="21" font-family="Georgia,serif" font-weight="bold" font-size="9">PRINT CALIBRATION</text>' +
     '<text x="15" y="30" font-family="Arial,sans-serif" font-size="3.8">Print at 100% / no scaling / measure the 50 mm bar.</text>';
   const tests = [.6, .8, 1, 1.2, 1.5, 2];
@@ -207,5 +214,5 @@ export function calibrationSheet() {
         '" stroke="#172c29" stroke-width="' + fmt(step * .38) + '"/>';
     }
   });
-  return svg + sheetFooter('Use the coarsest clean, distinct grid that gives the effect you want.');
+  return svg + sheetFooter('Use the coarsest clean, distinct grid that gives the effect you want.',p);
 }
