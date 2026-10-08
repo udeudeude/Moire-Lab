@@ -39,13 +39,17 @@
             <button id="resetButton" class="small-button" type="button" title="Reset overlay position">Reset</button>
           </div>
         </div>
+        <div class="experiment-switcher">
+          <div class="experiment-switcher-title"><span>CHOOSE AN EXPERIMENT</span><span id="experimentCount">1 OF 4</span></div>
+          <div id="experimentChoices" class="experiment-choices" role="group" aria-label="Choose an experiment"></div>
+        </div>
         <div class="stage-surround">
           <div class="stage" id="stage" role="group" aria-label="Interactive optical experiment. Drag in any direction to slide the acetate." tabindex="0">
             <svg id="experiment" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Overlaid ink patterns"></svg>
             <div class="stage-corner corner-tl"></div><div class="stage-corner corner-tr"></div>
             <div class="stage-corner corner-bl"></div><div class="stage-corner corner-br"></div>
             <span class="stage-label top-label">FIG. <span id="figureNumber">01</span> / EXPERIMENT</span>
-            <span class="stage-label bottom-label">DRAG TO SLIDE ACETATE <span aria-hidden="true">↕</span></span>
+            <span class="stage-label bottom-label"><span id="dragInstruction">DRAG VERTICALLY</span> <span id="dragIcon" aria-hidden="true">↕</span></span>
           </div>
         </div>
         <div class="transport">
@@ -60,7 +64,7 @@
 
       <section class="settings" aria-label="Experiment settings">
         <div class="settings-head"><div><span class="eyebrow">THE WORKSHOP</span><h2>Tune the illusion</h2></div><button id="defaultsButton" class="text-button" type="button">Restore defaults ↺</button></div>
-        <label class="select-label" for="presetSelect">EXPERIMENT</label>
+        <label class="select-label" for="presetSelect">EXPERIMENT · ALSO AVAILABLE ABOVE THE PICTURE</label>
         <select id="presetSelect">
           <option value="tide">Tidal lines · rolling water</option>
           <option value="vortex">Vortex · warped rings</option>
