@@ -49,7 +49,7 @@
             <div class="stage-corner corner-tl"></div><div class="stage-corner corner-tr"></div>
             <div class="stage-corner corner-bl"></div><div class="stage-corner corner-br"></div>
             <span class="stage-label top-label">FIG. <span id="figureNumber">01</span> / EXPERIMENT</span>
-            <span class="stage-label bottom-label"><span id="dragInstruction">DRAG VERTICALLY</span> <span id="dragIcon" aria-hidden="true">↕</span></span>
+            <span class="stage-label bottom-label"><span id="dragInstruction">DRAG TO MOVE · TWO FINGERS TO ROTATE</span> <span id="dragIcon" aria-hidden="true">↕</span></span>
           </div>
         </div>
         <div class="transport">
@@ -59,6 +59,7 @@
             <input id="phaseRange" type="range" min="-1" max="1" step="0.01" value="0" aria-label="Slide acetate vertically">
           </div>
         </div>
+        <p class="gesture-help">One finger: move acetate. Two fingers: move and rotate together. For precision, use the sliders below.</p>
         <p class="stage-footnote" id="stageFootnote">Two stationary line families produce a moving interference field. No animation frames are hidden in this picture.</p>
       </section>
 
@@ -74,7 +75,7 @@
         <div class="control-grid">
           <div class="control"><label for="pitchRange">Line spacing <output id="pitchOut">1.00 mm</output></label><input id="pitchRange" type="range" min="0.6" max="2.4" step="0.05" value="1"><div class="limit-label"><span>Fine</span><span>Coarse</span></div></div>
           <div class="control"><label for="amplitudeRange">Distortion <output id="amplitudeOut">50%</output></label><input id="amplitudeRange" type="range" min="0" max="100" step="1" value="50"><div class="limit-label"><span>Subtle</span><span>Wild</span></div></div>
-          <div class="control"><label for="angleRange">Overlay angle <output id="angleOut">0°</output></label><input id="angleRange" type="range" min="-12" max="12" step="0.5" value="0"><div class="limit-label"><span>−12°</span><span>+12°</span></div></div>
+          <div class="control"><label for="angleRange">Overlay angle <output id="angleOut">0°</output></label><input id="angleRange" type="range" min="-180" max="180" step="0.5" value="0"><div class="limit-label"><span>−180°</span><span>+180°</span></div></div>
           <div class="control"><label for="speedRange">Motion speed <output id="speedOut">1.0×</output></label><input id="speedRange" type="range" min="0.2" max="3" step="0.1" value="1"><div class="limit-label"><span>Slow</span><span>Fast</span></div></div>
         </div>
       </section>
