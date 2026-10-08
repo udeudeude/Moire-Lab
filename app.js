@@ -124,7 +124,7 @@ function syncControls() {
   $('stageFootnote').textContent = PRESETS[p.preset].description;
   $('overlayButton').textContent = state.overlay ? 'Overlay on' : 'Overlay off';
   $('overlayButton').setAttribute('aria-pressed', String(state.overlay));
-  $('dragInstruction').textContent = moire ? 'DRAG UP OR DOWN' : 'DRAG LEFT OR RIGHT';
+  $('dragInstruction').textContent = moire ? 'DRAG TO MOVE · TWO FINGERS TO TURN' : 'SLIDE & TURN THE GRID';
   $('dragIcon').textContent = moire ? '↕' : '↔';
   phaseRange.setAttribute('aria-label', moire ? 'Slide acetate vertically' : 'Slide acetate horizontally');
   stage.style.cursor = moire ? 'ns-resize' : 'ew-resize';
