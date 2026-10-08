@@ -2,8 +2,8 @@ import { PRESETS, FIELD, clamp, experimentMarkup, printSheet, calibrationSheet }
 
 const $ = id => document.getElementById(id);
 const defaults = {
-  moire: { mode:'moire', preset:'tide', pitch:1, amplitude:50, angle:0, speed:1, size:120, phase:0 },
-  barrier: { mode:'barrier', preset:'wheel', pitch:5.6, amplitude:65, angle:0, speed:1, size:120, phase:0 }
+  moire: { mode:'moire', preset:'tide', pitch:1, amplitude:50, angle:0, speed:1, size:120, paper:'letter', phase:0 },
+  barrier: { mode:'barrier', preset:'wheel', pitch:5.6, amplitude:65, angle:0, speed:1, size:120, paper:'letter', phase:0 }
 };
 const state = { mode:'moire', moire:{...defaults.moire}, barrier:{...defaults.barrier}, overlay:true, playing:false };
 const allowed = { moire:['tide','vortex','radiance','folds'], barrier:['wheel','fish'] };
@@ -20,6 +20,7 @@ try {
         if (typeof s[key] === 'number' && Number.isFinite(s[key])) state[mode][key] = clamp(s[key], ...ranges[key]);
       }
       if (allowed[mode].includes(s.preset)) state[mode].preset = s.preset;
+      if (s.paper === 'letter' || s.paper === 'a4') state[mode].paper = s.paper;
       state[mode].phase = 0;
     }
     state.overlay = saved.overlay !== false;
@@ -81,6 +82,7 @@ function syncControls() {
   controls.angle.disabled = !moire;
   controls.angle.title = moire ? 'Rotate the striped overlay' : 'Barrier animation uses an unrotated mask';
   for (const key of Object.keys(controls)) controls[key].value = String(p[key]);
+  $('paperSelect').value = p.paper;
   const phase = phaseRange;
   phase.min = moire ? String(-p.pitch) : '0';
   phase.max = String(p.pitch);
@@ -181,6 +183,10 @@ printSize.addEventListener('change', e => {
   current().size = Number(e.target.value); current().phase = 0;
   syncControls(); queueRender(); persist();
 });
+$('paperSelect').addEventListener('change', e => {
+  current().paper = e.target.value === 'a4' ? 'a4' : 'letter';
+  persist();
+});
 phaseRange.addEventListener('input', e => {
   stopPlaying(); current().phase = Number(e.target.value); applyPhase();
 });
@@ -253,7 +259,7 @@ function filename(kind) {
 }
 $('downloadBase').addEventListener('click', () => download(filename('picture'), printSheet(current(), 'base')));
 $('downloadOverlay').addEventListener('click', () => download(filename('acetate'), printSheet(current(), 'acetate')));
-$('downloadGuide').addEventListener('click', () => download('moire-lab-calibration-A4.svg', calibrationSheet()));
+$('downloadGuide').addEventListener('click', () => download('moire-lab-calibration-' + current().paper + '.svg', calibrationSheet(current())));
 const help = $('helpDialog');
 $('helpButton').addEventListener('click', () => help.showModal());
 $('closeHelp').addEventListener('click', () => help.close());
