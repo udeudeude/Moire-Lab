@@ -188,8 +188,8 @@ export function printSheet(p, kind) {
     // The bleed allows the acetate to keep covering the picture while sliding.
     svg += '<defs><clipPath id="acetate-bleed"><rect x="' + fmt(x - 9) + '" y="' + (y - 9) +
       '" width="' + (size + 18) + '" height="' + (size + 18) + '"/></clipPath></defs>' +
-      '<g clip-path="url(#acetate-bleed)" transform="translate(' + fmt(x) + ' ' + y +
-      ') scale(' + fmt(scale) + ')">' + acetate(p) + '</g>';
+      '<g clip-path="url(#acetate-bleed)"><g transform="translate(' + fmt(x) + ' ' + y +
+      ') scale(' + fmt(scale) + ')">' + acetate(p) + '</g></g>';
   }
   // Registration marks match both exports and remain outside the visible art.
   for (const cx of [x - 12, x + size + 12]) for (const cy of [y - 12, y + size + 12]) svg += cross(cx, cy);
