@@ -26,6 +26,7 @@ jobs:
           node --check geometry.js
           node --check sw.js
   publish:
+    if: github.event_name == 'workflow_dispatch'
     needs: verify
     environment:
       name: github-pages
