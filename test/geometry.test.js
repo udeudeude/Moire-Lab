@@ -21,7 +21,7 @@ test('all four moire experiments are genuine vector line fields', () => {
 
 test('moire acetate is real transparent lines, not a solid photograph', () => {
   const s = moireAcetate({ ...moire, angle:6 });
-  assert.match(s, /rotate\(6 60 60\)/);
+  assert.doesNotMatch(s, /rotate\(/); // Rotation is now a live SVG transform.
   assert.match(s, /stroke="#121c1a"/);
   assert.doesNotMatch(s, /fill="#fff"|<image/);
   assert.ok(s.includes('M -175'));
@@ -58,6 +58,7 @@ test('stage contains a separable movable overlay with 120-unit view geometry', (
     assert.match(s, /id="lab-clip"/);
     assert.match(s, /id="acetate-layer"/);
     assert.match(s, /id="acetate-shift"/);
+    assert.match(s, /id="acetate-rotation"/);
     assert.match(s, /clip-path="url\(#lab-clip\)"/);
   }
 });
@@ -102,4 +103,27 @@ test('A4 exports retain their own page dimensions, without scaling the drawing',
   const s = printSheet({...moire, paper:'a4'}, 'base');
   assert.match(s, /width="210mm" height="297mm"/);
   assert.match(s, /120 mm square/);
+});
+
+test('book-inspired and representational experiments contain real objects and vector contours', () => {
+  for (const preset of ['circles','squares','engine','sailboat']) {
+    const p={...moire,preset};
+    const svg=moireInk(p);
+    assert.match(svg, /<path|<circle/);
+    assert.ok(svg.length > 2000, preset + ' must not be an empty placeholder');
+    assert.doesNotMatch(svg, /<image|data:image|NaN|Infinity|undefined/);
+    assert.match(printSheet(p,'base'), /120 mm square/);
+    assert.match(experimentMarkup(p), /id="acetate-rotation"/);
+  }
+  assert.match(moireInk({...moire,preset:'engine'}), /<circle/);
+  assert.match(moireInk({...moire,preset:'sailboat'}), /M 56 20/);
+  assert.match(moireInk({...moire,preset:'circles'}), /circle cx="23"/);
+  assert.match(moireInk({...moire,preset:'squares'}), /rect x="0" y="0" width="46"/);
+});
+
+test('printable acetate carries rotation independently of the stationary picture', () => {
+  const p={...moire,angle:37,preset:'engine'};
+  assert.match(printSheet(p,'acetate'), /rotate\(37 60 60\)/);
+  assert.doesNotMatch(printSheet(p,'base'), /rotate\(37 60 60\)/);
+  assert.notEqual(printSheet({...p,angle:0},'acetate'),printSheet(p,'acetate'));
 });
