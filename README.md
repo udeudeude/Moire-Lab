@@ -2,7 +2,7 @@
 
 **A pocket optical playground, with printed books as the destination.**
 
-[Moiré Lab on GitHub Pages](https://udeudeude.github.io/Moire-Lab/) · [Source](https://github.com/udeudeude/Moire-Lab)
+**[Open the live web app](https://moire-lab.onrender.com)** · [Source](https://github.com/udeudeude/Moire-Lab)
 
 The project began with an interest in Bliss, Sands & Co.'s *The Magic Moving Picture Book*. Its organizing principle is simple: move a patterned transparent sheet across stationary ink and something in the image appears to move. This app provides **real superimposed vector line fields**, not a video that merely imitates their appearance.
 
@@ -17,9 +17,9 @@ There are no frameworks, subscriptions, external CDNs, telemetry or generated im
 
 ## Try it
 
-Open **https://udeudeude.github.io/Moire-Lab/** on a phone or desktop once GitHub Pages has deployed the repository.
+Open **https://moire-lab.onrender.com/** on a phone or desktop. Render serves the static files over HTTPS and automatically deploys new commits from `main`.
 
-If the URL is not live, select **Settings → Pages → Build and deployment → GitHub Actions** in this repository, then rerun **Actions → Verify and publish Moiré Lab**. Deployment is configured in `.github/workflows/pages.yml`. The automated workflow runs vector and JavaScript checks before publication.
+**Optional GitHub Pages:** to publish a second copy at `https://udeudeude.github.io/Moire-Lab/`, choose **Settings → Pages → Build and deployment → GitHub Actions**, then use **Actions → Verify and publish Moiré Lab → Run workflow**. Pages is not enabled automatically; ordinary pushes run checks without attempting this optional deployment. The workflow lives in `.github/workflows/pages.yml`.
 
 For a local server:
 
