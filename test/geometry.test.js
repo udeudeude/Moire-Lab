@@ -38,12 +38,18 @@ test('pitch converts to print size with consistent physical millimetres', () => 
 
 test('barrier mode interlaces four genuinely different illustrations', () => {
   const s = barrierInk(barrier);
-  assert.equal((s.match(/<clipPath/g) || []).length, 4);
-  assert.equal((s.match(/clip-path="url\(#strips-/g) || []).length, 4);
+  const strips = (s.match(/<svg x=/g) || []).length;
+  assert.ok(strips > 20, 'Every interlaced strip should have a visible SVG viewport');
+  assert.equal((s.match(/<\/svg>/g) || []).length, strips);
+  assert.doesNotMatch(s, /<clipPath|clip-path=/);
+  assert.match(s, /viewBox="/);
+  assert.match(s, /overflow="hidden"/);
   assert.notEqual(frameArtwork(barrier, 0), frameArtwork(barrier, 1));
   const fish = { ...barrier, preset:'fish' };
   assert.notEqual(frameArtwork(fish, 1), frameArtwork(fish, 3));
   assert.match(barrierAcetate(barrier), /<rect/);
+  const noMask = experimentMarkup(barrier).replace(/<g id="acetate-layer">[\s\S]*?<\/g><\/g><\/g>$/, '');
+  assert.match(noMask, /class="interlaced-ink"/, 'Base wheel must exist independently of overlay');
 });
 
 test('stage contains a separable movable overlay with 120-unit view geometry', () => {
