@@ -60,7 +60,7 @@ function squarePanel(n,p) {
     s+=filled('M 46 0 L 23 23 L 46 46 Z','#d5d9cf');
     // Horizontal interference lines are contained within opposing hourglass triangles.
     for(let row=0;row<=46;row+=step){
-      const v=row<=23? row : 46-row, left=23-v, right=23+v;
+      const v=Math.abs(23-row), left=23-v, right=23+v;
       s+=line('M '+F(left)+' '+F(row+a*.8*Math.sin(row*.3))+' H '+F(right),Math.max(.25,step*.34));
     }
     s+=line('M 0 0 L 23 23 L 46 0 M 0 46 L 23 23 L 46 46',.7);
@@ -78,7 +78,8 @@ function squarePanel(n,p) {
     s+=hatch;
     for(let i=0;i<8;i++){
       const th=2*Math.PI*i/8;
-      s+=line('M 23 23 L '+F(23+33*Math.cos(th))+' '+F(23+33*Math.sin(th)),.77);
+      const radius=22.7/Math.max(Math.abs(Math.cos(th)),Math.abs(Math.sin(th)));
+      s+=line('M 23 23 L '+F(23+radius*Math.cos(th))+' '+F(23+radius*Math.sin(th)),.77);
     }
     s+='<circle cx="23" cy="23" r="1.25" fill="'+sceneColor+'"/>';
   }
