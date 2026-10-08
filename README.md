@@ -6,11 +6,11 @@
 
 The project began with an interest in Bliss, Sands & Co.'s *The Magic Moving Picture Book*. Its organizing principle is simple: move a patterned transparent sheet across stationary ink and something in the image appears to move. This app provides **real superimposed vector line fields**, not a video that merely imitates their appearance.
 
-## What's in draft 0.1
+## What's in draft 0.2
 
 - **True moiré mode (primary):** four procedural experiments: tidal lines, vortex, radiance, woven folds. Slide a second grating by touch, slider, arrow keys or automatic playback. Adjust pitch, distortion and angular misalignment.
 - **Barrier-grid mode (secondary):** a mechanically different four-frame interlacing experiment, with rotating wheel and swimming fish presets.
-- **Phone-first:** touch controls, responsive interface, settings stored locally, standalone web manifest, and offline cache after a successful visit.
+- **Phone-first:** visible experiment buttons directly above the artwork, touch controls, responsive interface, settings stored locally, standalone web manifest, and offline cache after a successful visit.
 - **Print:** separately downloadable original and transparent ink-grid **SVGs**, in US Letter or A4, sized in real millimetres. Square artwork at 90, 120 or 150 mm. Each pair includes identical registration crosses. A 0.6–2.0 mm calibration sheet tests the printer.
 
 There are no frameworks, subscriptions, external CDNs, telemetry or generated images.
@@ -58,7 +58,7 @@ Run `npm test` or `node --test` on Node 22+. No package installation is necessar
 - [ ] Expand barrier animation to arbitrary frame sets, with editable frame timing and shape imports.
 - [ ] More accessible visual settings, color experiments, and low-ink/high-contrast options.
 
-Version 0.1 is a workshop, not yet a book-layout tool. Its first purpose is to find which optical designs are worth putting on paper.
+**Draft 0.2 repair:** Replaced fragile `clipPath`-based barrier slicing with native SVG viewports after an iPhone Safari report of missing wheel artwork. All six presets are now directly accessible above the stage, and the barrier direction label correctly says left/right. Updated the offline cache so the previous renderer does not linger.\n\nVersion 0.2 is a workshop, not yet a book-layout tool. Its first purpose is to find which optical designs are worth putting on paper.
 
 ## Credits
 
