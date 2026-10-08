@@ -1,3 +1,4 @@
+import { sceneInk, SCENE_PRESETS } from './scenes.js';
 // Moiré Lab: deterministic, resolution-independent vector generators.
 // Coordinates are an abstract 120 x 120 square. Export scales them to millimetres.
 export const FIELD = 120;
@@ -6,6 +7,10 @@ export const PRESETS = {
   vortex: { title: 'Vortex', description: 'Distorted concentric rings interact with straight acetate lines to produce shifting eddies.' },
   radiance: { title: 'Radiance', description: 'A fan of radial lines intersects a translating linear grating. This is optical interference, not frame animation.' },
   folds: { title: 'Woven folds', description: 'Two aligned gratings, one softly deformed into folds, create sweeping interference bands.' },
+  circles: { title: 'Magic circles', description: 'Four vector recreations of the concentric, petal and spoke studies in the historic moving picture book.' },
+  squares: { title: 'Magic squares', description: 'Four geometric optical panels inspired by the 1898 motograph: hourglasses, stars, and segmented squares.' },
+  engine: { title: 'Smoking engine', description: 'A steam traction engine emits curved optical lines. The machinery stays fixed while smoke interferes with the acetate.' },
+  sailboat: { title: 'Sailboat at sea', description: 'A sailboat with sails and rigging, surrounded by interference-patterned waves and clouds.' },
   wheel: { title: 'Turning wheel', description: 'Four independently drawn positions are interlaced behind a moving striped barrier. Unlike the moiré studies, this is frame reveal.' },
   fish: { title: 'Swimming fish', description: 'A four-frame drawing is sliced into vertical strips. Move the barrier by one slit width to advance one frame.' },
 };
@@ -67,6 +72,7 @@ function rays(p) {
   return ds;
 }
 export function moireInk(p) {
+  if (SCENE_PRESETS.includes(p.preset)) return sceneInk(p);
   const d = (p.preset === 'vortex') ? circles(p) :
     (p.preset === 'radiance') ? rays(p) :
       horizontalContours(p, p.preset === 'folds' ? 'folds' : 'tide');
@@ -79,7 +85,7 @@ export function moireAcetate(p) {
   const step = spacing(p);
   const d = [];
   for (let y = -175; y <= 290; y += step) d.push('M -175 ' + fmt(y) + ' H 295');
-  return '<g transform="rotate(' + fmt(clamp(p.angle, -12, 12)) + ' 60 60)" fill="none" stroke="#121c1a" stroke-width="' +
+  return '<g fill="none" stroke="#121c1a" stroke-width="' +
     fmt(step * .38) + '" stroke-linecap="butt"><path d="' + d.join(' ') + '"/></g>';
 }
 function barrierWheel(frame, a) {
@@ -150,7 +156,7 @@ export function experimentMarkup(p) {
   return '<defs><clipPath id="lab-clip"><rect x="0" y="0" width="120" height="120"/></clipPath></defs>' +
     '<rect x="0" y="0" width="120" height="120" fill="#faf7ee"/>' +
     '<g clip-path="url(#lab-clip)">' + ink(p) +
-    '<g id="acetate-layer"><g id="acetate-shift">' + acetate(p) + '</g></g></g>';
+    '<g id="acetate-layer"><g id="acetate-shift"><g id="acetate-rotation">' + acetate(p) + '</g></g></g></g>';
 }
 function cross(x, y) {
   return '<path d="M ' + fmt(x - 4) + ' ' + fmt(y) + ' h 8 M ' + fmt(x) + ' ' +
@@ -197,7 +203,7 @@ export function printSheet(p, kind) {
     svg += '<defs><clipPath id="acetate-bleed"><rect x="' + fmt(x - 9) + '" y="' + (y - 9) +
       '" width="' + (size + 18) + '" height="' + (size + 18) + '"/></clipPath></defs>' +
       '<g clip-path="url(#acetate-bleed)"><g transform="translate(' + fmt(x) + ' ' + y +
-      ') scale(' + fmt(scale) + ')">' + acetate(p) + '</g></g>';
+      ') scale(' + fmt(scale) + ')"><g transform="rotate(' + fmt(clamp(p.angle,-180,180)) + ' 60 60)">' + acetate(p) + '</g></g></g>';
   }
   // Registration marks match both exports and remain outside the visible art.
   for (const cx of [x - 12, x + size + 12]) for (const cy of [y - 12, y + size + 12]) svg += cross(cx, cy);
