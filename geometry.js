@@ -115,18 +115,26 @@ export function frameArtwork(p, i) {
   return '<g stroke="#172c29" stroke-linecap="round" stroke-linejoin="round">' +
     (p.preset === 'fish' ? barrierFish(i, a) : barrierWheel(i, a)) + '</g>';
 }
+// Each narrow SVG has its own native viewport; unlike URL-based clipPaths,
+// these slices render consistently in mobile Safari even when injected as SVG.
 export function barrierInk(p) {
   const step = spacing(p), frames = 4, slot = step / frames;
-  let defs = '', layers = '';
-  for (let f = 0; f < frames; f++) {
-    let slots = '';
-    for (let x = -step * 2; x < FIELD + step * 2; x += step) {
-      slots += '<rect x="' + fmt(x + f * slot) + '" y="-10" width="' + fmt(slot + .002) + '" height="140"/>';
+  const art = Array.from({length:frames}, (_,i) => frameArtwork(p,i));
+  const stripes = [];
+  for (let k = -1; k * step < FIELD + step; k++) {
+    for (let frame = 0; frame < frames; frame++) {
+      const x = k * step + frame * slot;
+      if (x + slot <= 0 || x >= FIELD) continue;
+      const left = Math.max(0, x), right = Math.min(FIELD, x+slot);
+      const width = right-left;
+      if (width < .0001) continue;
+      // Match local viewBox coordinates to pixel geometry exactly.
+      stripes.push('<svg x="' + fmt(left) + '" y="0" width="' + fmt(width) +
+        '" height="120" viewBox="' + fmt(left) + ' 0 ' + fmt(width) +
+        ' 120" preserveAspectRatio="none" overflow="hidden">' + art[frame] + '</svg>');
     }
-    defs += '<clipPath id="strips-' + f + '"><g>' + slots + '</g></clipPath>';
-    layers += '<g clip-path="url(#strips-' + f + ')">' + frameArtwork(p, f) + '</g>';
   }
-  return '<defs>' + defs + '</defs>' + layers;
+  return '<g class="interlaced-ink">' + stripes.join('') + '</g>';
 }
 export function barrierAcetate(p) {
   const step = spacing(p), slot = step / 4;
