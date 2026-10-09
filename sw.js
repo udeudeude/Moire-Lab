@@ -1,6 +1,6 @@
 // Cache the portable lab for offline use. Network-first prevents stale optical settings.
-const CACHE = 'moire-lab-v3';
-const ASSETS = ['./','./index.html','./style.css','./app.js','./geometry.js','./manifest.webmanifest','./icon.svg'];
+const CACHE = 'moire-lab-v4';
+const ASSETS = ['./','./index.html','./style.css','./app.js','./geometry.js','./manifest.webmanifest','./icon.svg','./apple-touch-icon.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
 });
